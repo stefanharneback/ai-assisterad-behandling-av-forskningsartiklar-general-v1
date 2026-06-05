@@ -1,0 +1,28 @@
+# Local research corpus and generated outputs
+/Forskning/
+/data/raw/
+/data/extracted/
+/data/records/
+/runs/
+/tmp/
+/artifacts/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Python/runtime artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Logs and local editor noise
+*.log
+.DS_Store
+Thumbs.db
+

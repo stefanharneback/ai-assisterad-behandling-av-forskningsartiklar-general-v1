@@ -1,0 +1,44 @@
+[project]
+name = "ai-assisterad-behandling-av-forskningsartiklar-general-v1"
+version = "0.1.0"
+description = "General, reusable pipeline for AI-assisted evidence extraction from research articles."
+requires-python = ">=3.11"
+dependencies = [
+  "duckdb>=1.1",
+  "httpx>=0.28",
+  "openai>=2.38,<3",
+  "openpyxl>=3.1",
+  "pydantic>=2.8",
+  "pymupdf>=1.26",
+  "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.8",
+  "mypy>=1.10",
+]
+
+[project.scripts]
+article-analysis-general = "article_analysis_general.cli:main"
+
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true
+warn_return_any = true
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

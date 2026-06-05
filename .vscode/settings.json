@@ -1,0 +1,6 @@
+{
+  "python.testing.unittestEnabled": true,
+  "python.testing.unittestArgs": ["discover", "-s", "tests"],
+  "python.analysis.extraPaths": ["src"]
+}
+
