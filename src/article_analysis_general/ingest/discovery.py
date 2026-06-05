@@ -44,10 +44,22 @@ def discover_articles(corpus: Path) -> list[Article]:
 
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as handle:
+    with open(readable_file_path(path), "rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def readable_file_path(path: Path) -> str:
+    if os.name != "nt":
+        return str(path)
+
+    path_text = str(path.resolve(strict=False))
+    if path_text.startswith("\\\\?\\"):
+        return path_text
+    if path_text.startswith("\\\\"):
+        return "\\\\?\\UNC\\" + path_text[2:]
+    return "\\\\?\\" + path_text
 
 
 def normalized_relative_path(corpus: Path, path: Path) -> str:

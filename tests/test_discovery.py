@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+import os
 from pathlib import Path
 
-from article_analysis_general.ingest.discovery import discover_articles, iter_pdf_paths, sha256_file
+from article_analysis_general.ingest.discovery import discover_articles, iter_pdf_paths, readable_file_path, sha256_file
 
 
 class DiscoveryTests(unittest.TestCase):
@@ -62,6 +63,12 @@ class DiscoveryTests(unittest.TestCase):
             names = [path.name for path in iter_pdf_paths(root)]
 
             self.assertEqual(names, ["one.pdf", "two.PDF"])
+
+    @unittest.skipUnless(os.name == "nt", "Windows extended paths are only used on Windows")
+    def test_readable_file_path_uses_windows_extended_path_prefix(self) -> None:
+        path = Path.cwd() / "Forskning" / "long-name.pdf"
+
+        self.assertTrue(readable_file_path(path).startswith("\\\\?\\"))
 
 
 if __name__ == "__main__":
