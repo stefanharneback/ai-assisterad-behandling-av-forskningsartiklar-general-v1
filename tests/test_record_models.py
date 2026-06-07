@@ -2,7 +2,17 @@ from __future__ import annotations
 
 import unittest
 
-from article_analysis_general.store.record import Article, ArticleSource, Author, Authorship, Evidence, Provenance, Question, Section
+from article_analysis_general.store.record import (
+    Answer,
+    Article,
+    ArticleSource,
+    Author,
+    Authorship,
+    Evidence,
+    Provenance,
+    Question,
+    Section,
+)
 
 
 class RecordModelTests(unittest.TestCase):
@@ -61,6 +71,28 @@ class RecordModelTests(unittest.TestCase):
 
         self.assertEqual(author.author_id, authorship.author_id)
         self.assertEqual(authorship.role, "article")
+
+    def test_answer_can_target_one_article_or_a_corpus_scope(self) -> None:
+        article_answer = Answer(
+            answer_id="a1",
+            question_id="q-summary",
+            scope="article",
+            doc_ids=["doc-1"],
+            value="Short article summary.",
+            status="found",
+        )
+        corpus_answer = Answer(
+            answer_id="a2",
+            question_id="q-network",
+            scope="corpus",
+            doc_ids=["doc-1", "doc-2"],
+            value="Two articles share a reference.",
+            status="found",
+        )
+
+        self.assertEqual(article_answer.doc_ids, ["doc-1"])
+        self.assertEqual(corpus_answer.scope, "corpus")
+        self.assertEqual(corpus_answer.doc_ids, ["doc-1", "doc-2"])
 
 
 if __name__ == "__main__":

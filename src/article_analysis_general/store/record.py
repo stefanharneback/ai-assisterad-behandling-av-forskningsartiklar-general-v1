@@ -9,6 +9,7 @@ ExtractionStatus = Literal["not_started", "ok", "partial", "failed"]
 SectionType = Literal["abstract", "intro", "method", "results", "discussion", "conclusion", "references", "other"]
 QuestionMethod = Literal["sql", "long-context", "rag"]
 AnswerStatus = Literal["found", "not_found", "unclear"]
+AnswerScope = Literal["article", "corpus", "run", "comparison"]
 TextLayerStatus = Literal["text", "scanned", "unknown"]
 AuthorshipRole = Literal["article", "reference", "external_work"]
 
@@ -143,7 +144,8 @@ class Answer(BaseModel):
 
     answer_id: str
     question_id: str
-    doc_id: str
+    scope: AnswerScope = "article"
+    doc_ids: list[str] = Field(default_factory=list)
     value: str | None
     status: AnswerStatus
     confidence: float | None = Field(default=None, ge=0, le=1)
