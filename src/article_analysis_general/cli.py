@@ -7,6 +7,7 @@ from typing import Sequence
 
 from article_analysis_general import __version__
 from article_analysis_general.ingest.discovery import discover_articles
+from article_analysis_general.store.run import write_run
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -18,6 +19,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     discover_parser = subparsers.add_parser("discover", help="Discover PDF files and print article stubs as JSON.")
     discover_parser.add_argument("--corpus", default="Forskning", help="Path to a local PDF corpus.")
+
+    ingest_parser = subparsers.add_parser(
+        "ingest", help="Discover PDFs and write canonical article records and a run manifest."
+    )
+    ingest_parser.add_argument("--corpus", default="Forskning", help="Path to a local PDF corpus.")
+    ingest_parser.add_argument("--out", default="runs", help="Base directory for run output folders.")
 
     return parser
 
@@ -33,6 +40,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "discover":
         articles = discover_articles(Path(args.corpus))
         print(json.dumps([article.model_dump() for article in articles], ensure_ascii=False, indent=2))
+        return 0
+
+    if args.command == "ingest":
+        base_dir = Path(args.out)
+        articles = discover_articles(Path(args.corpus))
+        manifest = write_run(articles, corpus=args.corpus, base_dir=base_dir)
+        summary = {
+            "run_id": manifest.run_id,
+            "run_dir": str(base_dir / manifest.run_id),
+            "article_count": manifest.article_count,
+            "source_count": manifest.source_count,
+            "text_layer_counts": manifest.text_layer_counts,
+        }
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
         return 0
 
     parser.error(f"Unknown command: {args.command}")
