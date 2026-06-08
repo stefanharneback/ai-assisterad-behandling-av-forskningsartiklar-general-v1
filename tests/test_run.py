@@ -5,15 +5,21 @@ import unittest
 from datetime import UTC, datetime
 from pathlib import Path
 
-from article_analysis_general.store.record import Article, ArticleSource
+from article_analysis_general.store.record import Article, ArticleSource, TextLayerStatus
 from article_analysis_general.store.run import RunManifest, new_run_id, write_run
 
 
-def _article(doc_id: str, source_database: str, text_layer: str) -> Article:
+def _article(doc_id: str, source_database: str, text_layer: TextLayerStatus) -> Article:
     return Article(
         doc_id=doc_id,
         file_hash=doc_id,
-        sources=[ArticleSource(file_name=f"{doc_id}.pdf", relative_path=f"{source_database}/{doc_id}.pdf", source_database=source_database)],
+        sources=[
+            ArticleSource(
+                file_name=f"{doc_id}.pdf",
+                relative_path=f"{source_database}/{doc_id}.pdf",
+                source_database=source_database,
+            )
+        ],
         text_layer=text_layer,
     )
 
