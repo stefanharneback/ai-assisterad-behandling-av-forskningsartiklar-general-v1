@@ -5,7 +5,15 @@ import os
 import unicodedata
 from pathlib import Path
 
-from article_analysis_general.store.record import Article, ArticleSource
+import fitz  # PyMuPDF
+
+from article_analysis_general.store.record import Article, ArticleSource, TextLayerStatus
+
+
+# A PDF with a real text layer yields characters from page.get_text; a scanned
+# (image-only) PDF yields (almost) none. The threshold ignores stray artifacts
+# like page numbers so a single OCR-free header does not look like a text layer.
+MIN_TEXT_LAYER_CHARS = 32
 
 
 def iter_pdf_paths(corpus: Path) -> list[Path]:
@@ -35,11 +43,29 @@ def discover_articles(corpus: Path) -> list[Article]:
                 doc_id=file_hash,
                 file_hash=file_hash,
                 sources=[source],
+                text_layer=detect_text_layer(pdf_path),
                 extraction_status="not_started",
             )
         elif source not in article.sources:
             article.sources.append(source)
     return list(articles_by_doc_id.values())
+
+
+def detect_text_layer(path: Path) -> TextLayerStatus:
+    try:
+        with fitz.open(readable_file_path(path)) as doc:
+            if doc.page_count == 0:
+                return "unknown"
+            char_count = 0
+            for page in doc:
+                char_count += len(page.get_text("text").strip())
+                if char_count >= MIN_TEXT_LAYER_CHARS:
+                    return "text"
+        return "scanned"
+    except Exception:
+        # Unreadable, encrypted or non-PDF bytes: leave the layer undetermined
+        # so later parsing milestones can refine it instead of guessing now.
+        return "unknown"
 
 
 def sha256_file(path: Path) -> str:

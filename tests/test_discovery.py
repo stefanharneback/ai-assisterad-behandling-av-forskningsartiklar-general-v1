@@ -5,7 +5,30 @@ import unittest
 import os
 from pathlib import Path
 
-from article_analysis_general.ingest.discovery import discover_articles, iter_pdf_paths, readable_file_path, sha256_file
+import fitz  # PyMuPDF
+
+from article_analysis_general.ingest.discovery import (
+    detect_text_layer,
+    discover_articles,
+    iter_pdf_paths,
+    readable_file_path,
+    sha256_file,
+)
+
+
+def _write_text_pdf(path: Path, text: str) -> None:
+    document = fitz.open()
+    page = document.new_page()
+    page.insert_text((72, 72), text)
+    document.save(str(path))
+    document.close()
+
+
+def _write_blank_pdf(path: Path) -> None:
+    document = fitz.open()
+    document.new_page()
+    document.save(str(path))
+    document.close()
 
 
 class DiscoveryTests(unittest.TestCase):
@@ -63,6 +86,38 @@ class DiscoveryTests(unittest.TestCase):
             names = [path.name for path in iter_pdf_paths(root)]
 
             self.assertEqual(names, ["one.pdf", "two.PDF"])
+
+    def test_detect_text_layer_finds_text(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            pdf = Path(tmp) / "text.pdf"
+            _write_text_pdf(pdf, "Method, results and discussion of the study.")
+
+            self.assertEqual(detect_text_layer(pdf), "text")
+
+    def test_detect_text_layer_marks_image_only_pdf_as_scanned(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            pdf = Path(tmp) / "blank.pdf"
+            _write_blank_pdf(pdf)
+
+            self.assertEqual(detect_text_layer(pdf), "scanned")
+
+    def test_detect_text_layer_is_unknown_for_non_pdf_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            pdf = Path(tmp) / "broken.pdf"
+            pdf.write_bytes(b"not a pdf")
+
+            self.assertEqual(detect_text_layer(pdf), "unknown")
+
+    def test_discover_articles_sets_detected_text_layer(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "SCOPUS").mkdir()
+            _write_text_pdf(root / "SCOPUS" / "paper.pdf", "Abstract, method and results section text.")
+
+            articles = discover_articles(root)
+
+            self.assertEqual(len(articles), 1)
+            self.assertEqual(articles[0].text_layer, "text")
 
     @unittest.skipUnless(os.name == "nt", "Windows extended paths are only used on Windows")
     def test_readable_file_path_uses_windows_extended_path_prefix(self) -> None:
