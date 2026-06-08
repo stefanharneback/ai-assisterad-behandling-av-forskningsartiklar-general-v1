@@ -19,7 +19,7 @@ Answers can be scoped to one article, a whole corpus, a run, or a comparison bet
 ## Consequences
 
 - Discovery deduplicates byte-identical PDFs and preserves every source path.
-- M1 must detect or leave `text_layer="unknown"` explicitly; later parsing can refine it.
+- M1 must detect or leave `text_layer="unknown"` explicitly; later parsing can refine it. M1 collapses both an unreadable file and an openable-but-undetermined file to `unknown`; M2 adds per-file diagnostics to tell these apart.
 - M3/M4 can join author and reference data without relying only on display names.
 - M5/M6 can store article-level answers and corpus-level answers with the same model.
 - Future SQL schemas should use explicit, non-reserved table names such as `article_references`.

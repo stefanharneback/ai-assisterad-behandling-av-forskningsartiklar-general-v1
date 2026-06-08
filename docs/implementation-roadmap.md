@@ -24,6 +24,7 @@
 - Bygg vidare på PyMuPDF och lägg till PyMuPDF4LLM som lokal text/layout-baseline.
 - Lägg till GROBID-adapter för TEI, sektioner, metadata och referenser.
 - Lägg till fallback-modul för svåra PDF:er.
+- Lägg per-fil-diagnostik för text_layer som skiljer "öppnades men obestämd" från "kunde inte öppnas" (idag faller båda till `unknown`).
 - Spara `Section` och `Chunk` med sid-/offset-provenance.
 - Skriv minimal `Resultat.xlsx` med bibliografiska kolumner när parsing ger titel, författare och år.
 
