@@ -43,6 +43,7 @@ class CliTests(unittest.TestCase):
             self.assertEqual(summary["article_count"], 1)
             run_dir = Path(summary["run_dir"])
             self.assertTrue((run_dir / "manifest.json").exists())
+            self.assertTrue((run_dir / "inventory.csv").exists())
             self.assertEqual(len(list((run_dir / "records").glob("*.json"))), 1)
 
 

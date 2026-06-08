@@ -7,6 +7,7 @@ from typing import Sequence
 
 from article_analysis_general import __version__
 from article_analysis_general.ingest.discovery import discover_articles
+from article_analysis_general.output.inventory import INVENTORY_FILENAME, write_inventory
 from article_analysis_general.store.run import write_run
 
 
@@ -46,12 +47,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         base_dir = Path(args.out)
         articles = discover_articles(Path(args.corpus))
         manifest = write_run(articles, corpus=args.corpus, base_dir=base_dir)
+        run_dir = base_dir / manifest.run_id
+        write_inventory(articles, run_dir / INVENTORY_FILENAME)
         summary = {
             "run_id": manifest.run_id,
-            "run_dir": str(base_dir / manifest.run_id),
+            "run_dir": str(run_dir),
             "article_count": manifest.article_count,
             "source_count": manifest.source_count,
             "text_layer_counts": manifest.text_layer_counts,
+            "inventory": str(run_dir / INVENTORY_FILENAME),
         }
         print(json.dumps(summary, ensure_ascii=False, indent=2))
         return 0
