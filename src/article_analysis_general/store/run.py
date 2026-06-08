@@ -41,12 +41,20 @@ def write_run(
 ) -> RunManifest:
     """Write one canonical JSON record per article plus a run manifest.
 
-    Records are keyed by ``doc_id``, so re-running the same ``run_id`` overwrites
-    the same files idempotently rather than accumulating duplicates.
+    An auto-generated ``run_id`` (``run_id=None``) never overwrites an existing
+    run: a numeric suffix is appended until a fresh directory is created, so two
+    ingests in the same second cannot clobber each other's history. An explicit
+    ``run_id`` is idempotent and reuses its directory, refreshing its records in
+    place.
     """
     moment = now or datetime.now(UTC)
-    resolved_run_id = run_id or new_run_id(moment)
-    run_dir = base_dir / resolved_run_id
+    if run_id is None:
+        run_dir = _create_unique_run_dir(base_dir, new_run_id(moment))
+    else:
+        run_dir = base_dir / run_id
+        run_dir.mkdir(parents=True, exist_ok=True)
+    resolved_run_id = run_dir.name
+
     records_dir = run_dir / RECORDS_DIRNAME
     records_dir.mkdir(parents=True, exist_ok=True)
 
@@ -64,3 +72,17 @@ def write_run(
     )
     (run_dir / MANIFEST_FILENAME).write_text(manifest.model_dump_json(indent=2), encoding="utf-8")
     return manifest
+
+
+def _create_unique_run_dir(base_dir: Path, run_id: str) -> Path:
+    base_dir.mkdir(parents=True, exist_ok=True)
+    candidate = base_dir / run_id
+    suffix = 2
+    while True:
+        try:
+            # Atomic create-or-fail so concurrent ingests never share a run dir.
+            candidate.mkdir(exist_ok=False)
+            return candidate
+        except FileExistsError:
+            candidate = base_dir / f"{run_id}-{suffix}"
+            suffix += 1

@@ -50,6 +50,28 @@ class RunOutputTests(unittest.TestCase):
             self.assertEqual(manifest.text_layer_counts["text"], 2)
             self.assertEqual(manifest.text_layer_counts["scanned"], 1)
 
+    def test_auto_run_id_never_overwrites_an_existing_run(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            moment = datetime(2026, 6, 8, 10, 15, 30, tzinfo=UTC)
+
+            first = write_run([_article("aaa", "SCOPUS", "text")], corpus="Forskning", base_dir=base, now=moment)
+            second = write_run([_article("bbb", "ERIC", "text")], corpus="Forskning", base_dir=base, now=moment)
+
+            self.assertNotEqual(first.run_id, second.run_id)
+            self.assertEqual(second.run_id, f"{first.run_id}-2")
+            self.assertTrue((base / first.run_id / "records" / "aaa.json").exists())
+            self.assertTrue((base / second.run_id / "records" / "bbb.json").exists())
+
+    def test_explicit_run_id_reuses_its_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+
+            write_run([_article("aaa", "SCOPUS", "text")], corpus="Forskning", base_dir=base, run_id="run-test")
+            write_run([_article("aaa", "SCOPUS", "text")], corpus="Forskning", base_dir=base, run_id="run-test")
+
+            self.assertEqual(sorted(p.name for p in base.iterdir() if p.is_dir()), ["run-test"])
+
     def test_manifest_round_trips_from_disk(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp)
