@@ -1,9 +1,8 @@
 # ADR 0004 - Separate Canonical Document Record From Run-Scoped Answers
 
-- Status: Proposed (2026-06-11). Captures the design direction from
+- Status: Accepted and implemented (2026-06-11). Captures the design direction from
   [Claude-Review--2026-06-11-1422--design-consistency-and-contracts.md](../reviews/Claude-Review--2026-06-11-1422--design-consistency-and-contracts.md)
-  (findings D1 and D2). Ratify or revise before building M5 (question engine) or
-  M6 (output).
+  (findings D1 and D2).
 
 ## Context
 
@@ -11,7 +10,7 @@ The architecture's core idea is to decouple documents from questions: process
 each article once into a reusable representation, then run any question set
 against it cheaply and repeatedly
 ([alternativ-plan-v1.md](../architecture/alternativ-plan-v1.md)). Two aspects of
-the current `ArticleRecord` work against that:
+the earlier `ArticleRecord` shape worked against that:
 
 - D1: `ArticleRecord` embeds run-scoped `answers` and `evidence`. A new question
   set would rewrite the canonical per-article artifact, which the architecture is
@@ -23,9 +22,9 @@ the current `ArticleRecord` work against that:
   full-text string that is not stored, so offset-level provenance does not
   round-trip from the JSON alone (page-level provenance survives).
 
-Neither is breaking today: `answers` / `evidence` are never populated, and page
-numbers are stored. Now — before M5/M6 build on the shape — is the cheap moment
-to settle it.
+Neither issue was breaking at the time because `answers` / `evidence` were never
+populated, and page numbers were already stored. The decision was therefore
+implemented before M5/M6 could build on the old shape.
 
 ## Decision
 
@@ -53,9 +52,10 @@ to settle it.
 - Migration is low-cost now because `answers` / `evidence` are empty in practice;
   delaying past M5 would require reshaping populated artifacts.
 
-## Open points to settle on ratification
+## Open points for M5/M6
 
-- Exact storage layout for full text and page map: fields on `ArticleRecord`
-  versus a sibling `text.json` per article.
-- The run-scoped answer schema (ties to `Question.answer_schema`, review finding
-  D3) and where it lives relative to the run manifest.
+- The exact run-scoped answer schema (ties to `Question.answer_schema`, review
+  finding D3) and where it lives relative to the run manifest.
+- Whether very large future corpora need a sibling text artifact for storage
+  efficiency. The current accepted default is fields on `ArticleRecord` because
+  it keeps provenance round-trippable from one JSON record.
