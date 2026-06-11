@@ -7,11 +7,13 @@ This folder stores structured review reports for implementation slices.
 Use this pattern:
 
 ```text
-Codex-Review--YYYY-MM-DD-HHMM--short-description.md
+<reviewer>-Review--YYYY-MM-DD-HHMM--short-description.md
 ```
 
-Use the local timezone for the timestamp. Keep the short description lowercase
-and hyphen-separated.
+`<reviewer>` is the agent or person who ran the review, so authorship is visible
+in the filename — for example `Claude-Review--…` or `Codex-Review--…`. Use the
+local timezone for the timestamp. Keep the short description lowercase and
+hyphen-separated.
 
 ## Report Shape
 

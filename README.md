@@ -54,9 +54,10 @@ article-analysis-general ingest --corpus Forskning --out runs --parse-local
 ## Arbetsrytm och granskning
 
 Arbetet delas i små, verifierade slices. Kodändringar ska normalt klara
-`pytest`, `ruff check .` och `mypy src tests` innan commit. Parser-, ingest- och
-outputändringar ska dessutom smoke-testas mot `Forskning/` till en temporär
-outputkatalog.
+projektgaten `./scripts/check.ps1` (`pytest`, `ruff check .` och
+`mypy src tests`) innan commit. Parser-, ingest- och outputändringar ska
+dessutom smoke-testas mot `Forskning/` till en temporär outputkatalog med
+`./scripts/check.ps1 -Smoke`.
 
 Strukturerade granskningar sparas i `docs/reviews/`. Process, review-packet och
 severity-nivåer beskrivs i [docs/workflows/review-process.md](docs/workflows/review-process.md).

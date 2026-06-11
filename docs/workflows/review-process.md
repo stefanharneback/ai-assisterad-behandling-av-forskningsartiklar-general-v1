@@ -19,7 +19,13 @@ same slice.
 
 ## Verification Gate
 
-Before every commit that changes code, run:
+Before every commit that changes code, run the project gate:
+
+```powershell
+.\scripts\check.ps1
+```
+
+It runs the full gate from the project virtual environment:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest
@@ -27,8 +33,14 @@ Before every commit that changes code, run:
 .\.venv\Scripts\python.exe -m mypy src tests
 ```
 
-For parser, ingest or output changes, also run a corpus smoke test against a
+For parser, ingest or output changes, also run the corpus smoke test against a
 temporary output directory:
+
+```powershell
+.\scripts\check.ps1 -Smoke
+```
+
+This appends the corpus smoke test to the gate:
 
 ```powershell
 $out = Join-Path $env:TEMP "article-analysis-general-smoke"

@@ -10,6 +10,14 @@ python -m pip install -e ".[dev]"
 
 ## Checks
 
+Run the full gate with one command:
+
+```powershell
+.\scripts\check.ps1
+```
+
+It is equivalent to running each check from the project virtual environment:
+
 ```powershell
 .\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\python.exe -m ruff check .
@@ -17,7 +25,7 @@ python -m pip install -e ".[dev]"
 ```
 
 For parser, ingest or output changes, run a corpus smoke test to a temporary
-directory:
+directory with `.\scripts\check.ps1 -Smoke`, or directly:
 
 ```powershell
 $out = Join-Path $env:TEMP "article-analysis-general-smoke"

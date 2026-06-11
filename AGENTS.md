@@ -19,15 +19,20 @@ Roadmap: `docs/implementation-roadmap.md`.
 
 - Work in small, reviewable slices. Prefer one coherent behavior or contract
   change per commit.
-- Before code commits, run `pytest`, `ruff check .`, and `mypy src tests` from
-  the project virtual environment.
-- For ingest, parser or output changes, also run a corpus smoke test to a
-  temporary output directory, not to committed paths.
+- Before code commits, run the project gate `./scripts/check.ps1`, which runs
+  `pytest`, `ruff check .` and `mypy src tests` from the project virtual
+  environment.
+- For ingest, parser or output changes, also run the corpus smoke test with
+  `./scripts/check.ps1 -Smoke`, writing to a temporary output directory, not to
+  committed paths.
 - Request a structured review after 2-4 related commits, at milestone
   boundaries, or whenever models, Command Line Interface (CLI), JSON output,
   `inventory.csv`, provenance, cost tracking, `doc_id`, or SQL behavior changes.
 - Save substantive review reports in `docs/reviews/` using the
-  `Codex-Review--YYYY-MM-DD-HHMM--short-description.md` naming convention.
+  `<reviewer>-Review--YYYY-MM-DD-HHMM--short-description.md` naming convention,
+  where `<reviewer>` is the agent or person who ran the review (for example
+  `Claude-Review--…` or `Codex-Review--…`) so authorship is visible in the
+  filename.
 - Use `docs/workflows/review-process.md` as the source of truth for review
   packets, severity levels and verification gates.
 
