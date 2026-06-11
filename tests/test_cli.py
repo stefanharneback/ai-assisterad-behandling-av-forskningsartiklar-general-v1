@@ -67,8 +67,12 @@ class CliTests(unittest.TestCase):
             record_path = next((Path(summary["run_dir"]) / "records").glob("*.json"))
             record = json.loads(record_path.read_text(encoding="utf-8"))
             self.assertEqual(record["article"]["extraction_status"], "ok")
+            self.assertIn("A concise abstract.", record["full_text"])
+            self.assertEqual(len(record["pages"]), 1)
             self.assertEqual([section["normalized_type"] for section in record["sections"]], ["abstract", "method"])
             self.assertGreaterEqual(len(record["chunks"]), 2)
+            self.assertNotIn("answers", record)
+            self.assertNotIn("evidence", record)
 
 
 if __name__ == "__main__":

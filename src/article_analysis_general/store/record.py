@@ -157,15 +157,33 @@ class Answer(BaseModel):
     prompt_version: str | None = None
 
 
+class PageRecord(BaseModel):
+    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+
+    page_number: int = Field(ge=1)
+    text: str
+    start_offset: int = Field(ge=0)
+    end_offset: int = Field(ge=0)
+
+
 class ArticleRecord(BaseModel):
     model_config = ConfigDict(extra="forbid", validate_assignment=True)
 
     article: Article
+    full_text: str = ""
+    pages: list[PageRecord] = Field(default_factory=list)
     authors: list[Author] = Field(default_factory=list)
     authorships: list[Authorship] = Field(default_factory=list)
     sections: list[Section] = Field(default_factory=list)
     chunks: list[Chunk] = Field(default_factory=list)
     references: list[Reference] = Field(default_factory=list)
     external_works: list[ExternalWork] = Field(default_factory=list)
+
+
+class AnswerSet(BaseModel):
+    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+
+    run_id: str
+    questions: list[Question] = Field(default_factory=list)
     evidence: list[Evidence] = Field(default_factory=list)
     answers: list[Answer] = Field(default_factory=list)

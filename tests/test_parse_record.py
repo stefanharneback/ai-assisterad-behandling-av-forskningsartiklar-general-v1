@@ -30,8 +30,22 @@ class ParseRecordTests(unittest.TestCase):
             record = build_local_article_record(article, corpus=corpus)
 
             self.assertEqual(record.article.extraction_status, "ok")
+            self.assertIn("A concise abstract.", record.full_text)
+            self.assertEqual(len(record.pages), 1)
             self.assertEqual([section.normalized_type for section in record.sections], ["abstract", "method"])
             self.assertGreaterEqual(len(record.chunks), 2)
+            first_section = record.sections[0]
+            first_section_start = first_section.provenance.start_offset
+            first_section_end = first_section.provenance.end_offset
+            self.assertIsNotNone(first_section_start)
+            self.assertIsNotNone(first_section_end)
+            self.assertEqual(record.full_text[first_section_start:first_section_end], first_section.text)
+            first_chunk = record.chunks[0]
+            first_chunk_start = first_chunk.provenance.start_offset
+            first_chunk_end = first_chunk.provenance.end_offset
+            self.assertIsNotNone(first_chunk_start)
+            self.assertIsNotNone(first_chunk_end)
+            self.assertEqual(record.full_text[first_chunk_start:first_chunk_end], first_chunk.text)
 
     def test_build_local_article_record_leaves_scanned_pdf_for_later_ocr(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -48,6 +62,8 @@ class ParseRecordTests(unittest.TestCase):
 
             self.assertEqual(record.article.text_layer, "scanned")
             self.assertEqual(record.article.extraction_status, "not_started")
+            self.assertEqual(record.full_text, "")
+            self.assertEqual(record.pages, [])
             self.assertEqual(record.sections, [])
             self.assertEqual(record.chunks, [])
 

@@ -25,6 +25,15 @@ def _write_text_pdf(path: Path, text: str) -> None:
     document.close()
 
 
+def _write_text_pdf_pages(path: Path, pages: list[str]) -> None:
+    document = fitz.open()
+    for text in pages:
+        page = document.new_page()
+        page.insert_text((72, 72), text)
+    document.save(str(path))
+    document.close()
+
+
 def _write_blank_pdf(path: Path) -> None:
     document = fitz.open()
     document.new_page()
@@ -113,6 +122,19 @@ class DiscoveryTests(unittest.TestCase):
             self.assertEqual(inspection.page_count, 1)
             self.assertGreater(inspection.text_char_count or 0, 0)
             self.assertIsNone(inspection.error)
+
+    def test_inspect_text_layer_counts_text_across_all_pages(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            pdf = Path(tmp) / "text.pdf"
+            first_page = "Method, results and discussion of the study."
+            second_page = "Second page text that must also be counted."
+            _write_text_pdf_pages(pdf, [first_page, second_page])
+
+            inspection = inspect_text_layer(pdf)
+
+            self.assertEqual(inspection.status, "text")
+            self.assertEqual(inspection.page_count, 2)
+            self.assertGreater(inspection.text_char_count or 0, len(first_page))
 
     def test_detect_text_layer_is_unknown_for_non_pdf_bytes(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

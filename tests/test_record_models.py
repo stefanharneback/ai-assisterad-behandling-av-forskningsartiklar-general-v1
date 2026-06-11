@@ -2,13 +2,18 @@ from __future__ import annotations
 
 import unittest
 
+from pydantic import ValidationError
+
 from article_analysis_general.store.record import (
     Answer,
+    AnswerSet,
     Article,
+    ArticleRecord,
     ArticleSource,
     Author,
     Authorship,
     Evidence,
+    PageRecord,
     Provenance,
     Question,
     Section,
@@ -93,6 +98,59 @@ class RecordModelTests(unittest.TestCase):
         self.assertEqual(article_answer.doc_ids, ["doc-1"])
         self.assertEqual(corpus_answer.scope, "corpus")
         self.assertEqual(corpus_answer.doc_ids, ["doc-1", "doc-2"])
+
+    def test_article_record_keeps_full_text_and_page_map_without_answers(self) -> None:
+        article = Article(
+            doc_id="doc",
+            file_hash="doc",
+            sources=[ArticleSource(file_name="paper.pdf", relative_path="SCOPUS/paper.pdf")],
+        )
+        record = ArticleRecord(
+            article=article,
+            full_text="Page one.\n\nPage two.",
+            pages=[
+                PageRecord(page_number=1, text="Page one.", start_offset=0, end_offset=9),
+                PageRecord(page_number=2, text="Page two.", start_offset=11, end_offset=20),
+            ],
+        )
+
+        self.assertEqual(record.full_text[record.pages[1].start_offset : record.pages[1].end_offset], "Page two.")
+        with self.assertRaises(ValidationError):
+            ArticleRecord.model_validate(
+                {
+                    "article": article.model_dump(),
+                    "answers": [
+                        {
+                            "answer_id": "a1",
+                            "question_id": "q1",
+                            "value": "answer",
+                            "status": "found",
+                        }
+                    ],
+                }
+            )
+
+    def test_answer_set_is_run_scoped_output(self) -> None:
+        question = Question(question_id="q1", text="Purpose?", method="long-context", answer_schema="text")
+        evidence = Evidence(
+            evidence_id="e1",
+            doc_id="doc",
+            quote="Purpose text",
+            provenance=Provenance(page=1, start_offset=0, end_offset=12),
+        )
+        answer = Answer(
+            answer_id="a1",
+            question_id=question.question_id,
+            doc_ids=["doc"],
+            value="Purpose text",
+            status="found",
+            evidence_ids=[evidence.evidence_id],
+        )
+
+        answer_set = AnswerSet(run_id="run-1", questions=[question], evidence=[evidence], answers=[answer])
+
+        self.assertEqual(answer_set.run_id, "run-1")
+        self.assertEqual(answer_set.answers[0].evidence_ids, ["e1"])
 
 
 if __name__ == "__main__":

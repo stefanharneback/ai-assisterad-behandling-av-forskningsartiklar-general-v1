@@ -78,9 +78,8 @@ def inspect_text_layer(path: Path) -> TextLayerInspection:
             for page_number in range(page_count):
                 page = doc.load_page(page_number)
                 char_count += len(page.get_text("text").strip())
-                if char_count >= MIN_TEXT_LAYER_CHARS:
-                    return TextLayerInspection(status="text", page_count=page_count, text_char_count=char_count)
-        return TextLayerInspection(status="scanned", page_count=page_count, text_char_count=char_count)
+        status: TextLayerStatus = "text" if char_count >= MIN_TEXT_LAYER_CHARS else "scanned"
+        return TextLayerInspection(status=status, page_count=page_count, text_char_count=char_count)
     except Exception as exc:
         # Unreadable, encrypted or non-PDF bytes: leave the layer undetermined
         # so later parsing milestones can refine it instead of guessing now.

@@ -120,6 +120,35 @@ class LocalParseTests(unittest.TestCase):
         self.assertEqual(chunks[0].provenance.start_offset, 10)
         self.assertGreater(chunks[1].provenance.start_offset or 0, 10)
 
+    def test_chunk_sections_derives_page_provenance_from_offsets_when_pages_are_available(self) -> None:
+        first_page = "First page content."
+        second_page = "Second page content."
+        full_text = f"{first_page}\n\n{second_page}"
+        pages = [
+            PageText(page_number=1, text=first_page, start_offset=0, end_offset=len(first_page)),
+            PageText(
+                page_number=2,
+                text=second_page,
+                start_offset=len(first_page) + 2,
+                end_offset=len(full_text),
+            ),
+        ]
+        section = Section(
+            section_id="doc:section:0001",
+            doc_id="doc",
+            heading="Methods",
+            normalized_type="method",
+            text=full_text,
+            provenance=Provenance(page_start=1, page_end=2, start_offset=0, end_offset=len(full_text)),
+        )
+
+        chunks = chunk_sections([section], pages=pages, max_chars=len(first_page) + 1, overlap=0)
+
+        self.assertEqual(chunks[0].provenance.page_start, 1)
+        self.assertEqual(chunks[0].provenance.page_end, 1)
+        self.assertEqual(chunks[1].provenance.page_start, 2)
+        self.assertEqual(chunks[1].provenance.page_end, 2)
+
     def test_parse_with_local_fallback_returns_pdf_text(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             pdf = Path(tmp) / "paper.pdf"

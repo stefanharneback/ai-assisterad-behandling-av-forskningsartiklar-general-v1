@@ -22,7 +22,7 @@ Repo:t har gått förbi det första M0-skelettet. Nuvarande kärna omfattar:
 - ingest/discovery med stabilt innehållsbaserat `doc_id`
 - deduplicering av byte-identiska PDF:er till en artikel med flera källor
 - `text_layer`-detektion med PyMuPDF
-- run manifest, JSON-records och `inventory.csv`
+- run manifest, JSON-records med fulltext/sidkarta och `inventory.csv`
 - lokal M2-baseline som kan extrahera text, sektioner och chunks med provenance
 - tester som verifierar kontrakten
 

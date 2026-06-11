@@ -99,7 +99,7 @@ def parse_pdf_document(
     parsed_text = extract_pdf_text(pdf_path)
     sections = split_sections(parsed_text, doc_id=doc_id)
     resolved_overlap = _default_overlap(max_chunk_chars) if chunk_overlap is None else chunk_overlap
-    chunks = chunk_sections(sections, max_chars=max_chunk_chars, overlap=resolved_overlap)
+    chunks = chunk_sections(sections, pages=parsed_text.pages, max_chars=max_chunk_chars, overlap=resolved_overlap)
     return ParsedPdfDocument(
         full_text=parsed_text.full_text,
         pages=parsed_text.pages,
@@ -206,6 +206,7 @@ def split_sections(parsed_text: ParsedPdfText, *, doc_id: str) -> list[Section]:
 def chunk_sections(
     sections: list[Section],
     *,
+    pages: list[PageText] | None = None,
     max_chars: int = DEFAULT_CHUNK_CHARS,
     overlap: int = DEFAULT_CHUNK_OVERLAP,
 ) -> list[Chunk]:
@@ -231,6 +232,11 @@ def chunk_sections(
             if chunk_text:
                 start_offset = section_start + start + trim_start
                 end_offset = section_start + start + trim_end
+                page_start = section.provenance.page_start
+                page_end = section.provenance.page_end
+                if pages is not None:
+                    page_start = _page_number_for_offset(pages, start_offset)
+                    page_end = _page_number_for_offset(pages, max(start_offset, end_offset - 1))
                 chunks.append(
                     Chunk(
                         chunk_id=f"{section.section_id}:chunk:{section_chunk_index:04d}",
@@ -238,8 +244,8 @@ def chunk_sections(
                         section_id=section.section_id,
                         text=chunk_text,
                         provenance=Provenance(
-                            page_start=section.provenance.page_start,
-                            page_end=section.provenance.page_end,
+                            page_start=page_start,
+                            page_end=page_end,
                             section_id=section.section_id,
                             start_offset=start_offset,
                             end_offset=end_offset,
