@@ -9,19 +9,22 @@ Utgångspunkten är arkitekturen i [docs/architecture/alternativ-plan-v1.md](doc
 - Processa varje artikel en gång till en kanonisk, återanvändbar representation.
 - Identifiera artiklar med `doc_id = sha256(file_bytes)`, inte filnamn eller sökväg.
 - Lagra artikelstruktur, referenser, frågor, svar och evidens som separata dataobjekt.
-- Använd SQL/relationer för deterministiska frågor och LLM för texttolkning.
+- Använd SQL (Structured Query Language)/relationer för deterministiska frågor och LLM (Large Language Model) för texttolkning.
 - Håll frågor i data (`questions.yaml` eller Excel-import), inte hårdkodat i pipeline.
 - Spara alla svar med provenance: artikel, sektion, sida och citat.
 
-## Första målbild
+## Nuvarande målbild
 
-M0 i detta repo är ett rent, testbart skelett:
+Repo:t har gått förbi det första M0-skelettet. Nuvarande kärna omfattar:
 
 - modulstruktur enligt den nya planen
 - Pydantic-modeller för kärnobjekten
 - ingest/discovery med stabilt innehållsbaserat `doc_id`
-- CLI-bas
-- tester som verifierar startkontrakten
+- deduplicering av byte-identiska PDF:er till en artikel med flera källor
+- `text_layer`-detektion med PyMuPDF
+- run manifest, JSON-records och `inventory.csv`
+- lokal M2-baseline som kan extrahera text, sektioner och chunks med provenance
+- tester som verifierar kontrakten
 
 ## Lokal utveckling
 
@@ -39,13 +42,15 @@ $env:PYTHONPATH = "src"
 python -m unittest discover -s tests
 ```
 
-## CLI
+## Command Line Interface (CLI)
 
 ```powershell
 article-analysis-general doctor
 article-analysis-general discover --corpus Forskning
+article-analysis-general ingest --corpus Forskning --out runs
+article-analysis-general ingest --corpus Forskning --out runs --parse-local
 ```
 
 ## Repo-status
 
-Detta är ett M0-skelett. GROBID, Docling/PyMuPDF4LLM, OpenAlex, Crossref, Unpaywall, SQLite/DuckDB-index och frågemotor implementeras i efterföljande milestones enligt [docs/implementation-roadmap.md](docs/implementation-roadmap.md).
+M0 är klart och M1 är implementerat som körbar ingest-kärna. M2 har en lokal PyMuPDF-baseline för text, sektioner och chunks via `--parse-local`; GROBID, PyMuPDF4LLM/Docling och OCR (Optical Character Recognition) är fortfarande nästa parsersteg. OpenAlex, Crossref, Unpaywall, SQLite/DuckDB-index och frågemotor implementeras i efterföljande milestones enligt [docs/implementation-roadmap.md](docs/implementation-roadmap.md).

@@ -152,3 +152,17 @@ class Answer(BaseModel):
     evidence_ids: list[str] = Field(default_factory=list)
     model: str | None = None
     prompt_version: str | None = None
+
+
+class ArticleRecord(BaseModel):
+    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+
+    article: Article
+    authors: list[Author] = Field(default_factory=list)
+    authorships: list[Authorship] = Field(default_factory=list)
+    sections: list[Section] = Field(default_factory=list)
+    chunks: list[Chunk] = Field(default_factory=list)
+    references: list[Reference] = Field(default_factory=list)
+    external_works: list[ExternalWork] = Field(default_factory=list)
+    evidence: list[Evidence] = Field(default_factory=list)
+    answers: list[Answer] = Field(default_factory=list)

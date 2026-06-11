@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -12,6 +13,7 @@ from article_analysis_general.store.record import Article, TextLayerStatus
 
 RECORDS_DIRNAME = "records"
 MANIFEST_FILENAME = "manifest.json"
+RecordBuilder = Callable[[Article], BaseModel]
 
 
 class RunManifest(BaseModel):
@@ -38,6 +40,7 @@ def write_run(
     base_dir: Path = Path("runs"),
     run_id: str | None = None,
     now: datetime | None = None,
+    record_builder: RecordBuilder | None = None,
 ) -> RunManifest:
     """Write one canonical JSON record per article plus a run manifest.
 
@@ -60,7 +63,8 @@ def write_run(
 
     for article in articles:
         record_path = records_dir / f"{article.doc_id}.json"
-        record_path.write_text(article.model_dump_json(indent=2), encoding="utf-8")
+        record = record_builder(article) if record_builder is not None else article
+        record_path.write_text(record.model_dump_json(indent=2), encoding="utf-8")
 
     manifest = RunManifest(
         run_id=resolved_run_id,
