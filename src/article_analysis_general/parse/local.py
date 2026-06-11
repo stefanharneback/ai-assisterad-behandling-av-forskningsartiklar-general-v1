@@ -45,7 +45,7 @@ class _HeadingMatch:
     end_offset: int
 
 
-_HEADING_PREFIX_RE = re.compile(r"^\s*(?:\d+(?:\.\d+)*\.?\s+)?")
+_HEADING_PREFIX_RE = re.compile(r"^\s*(?:(?:\d+(?:\.\d+)*)|(?:[IVXLCDM]+))\.?\s+", re.IGNORECASE)
 _HEADING_TRAILING_RE = re.compile(r"[\s:.\-–—]+$")
 
 _SECTION_HEADINGS: dict[str, SectionType] = {
@@ -59,12 +59,25 @@ _SECTION_HEADINGS: dict[str, SectionType] = {
     "method": "method",
     "materials and methods": "method",
     "methodology": "method",
+    "participants": "method",
+    "procedure": "method",
+    "procedures": "method",
+    "sample": "method",
+    "samples": "method",
+    "data collection": "method",
+    "data analysis": "method",
+    "research design": "method",
+    "study design": "method",
     "metod": "method",
     "results": "results",
     "result": "results",
+    "results and analysis": "results",
     "findings": "results",
+    "findings of research": "results",
     "resultat": "results",
     "discussion": "discussion",
+    "discussion and conclusion": "discussion",
+    "discussion and conclusions": "discussion",
     "diskussion": "discussion",
     "conclusion": "conclusion",
     "conclusions": "conclusion",

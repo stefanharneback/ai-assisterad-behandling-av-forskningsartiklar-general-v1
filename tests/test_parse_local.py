@@ -66,6 +66,30 @@ class LocalParseTests(unittest.TestCase):
         self.assertEqual(sections[1].text, "Abstract text.")
         self.assertEqual(sections[1].provenance.start_offset, text.index("Abstract text."))
 
+    def test_split_sections_detects_roman_numbered_composite_headings(self) -> None:
+        text = (
+            "I. INTRODUCTION\n"
+            "Intro text.\n\n"
+            "III. METHODOLOGY\n"
+            "Method text.\n\n"
+            "IV. RESULTS AND ANALYSIS\n"
+            "Result text.\n\n"
+            "V. DISCUSSION AND CONCLUSIONS\n"
+            "Discussion text.\n\n"
+            "REFERENCES\n"
+            "Ref text."
+        )
+        parsed = ParsedPdfText(full_text=text, pages=[PageText(page_number=1, text=text, start_offset=0, end_offset=len(text))])
+
+        sections = split_sections(parsed, doc_id="doc")
+
+        self.assertEqual(
+            [section.normalized_type for section in sections],
+            ["intro", "method", "results", "discussion", "references"],
+        )
+        self.assertEqual(sections[1].heading, "III. METHODOLOGY")
+        self.assertEqual(sections[2].text, "Result text.")
+
     def test_parse_pdf_document_builds_sections_and_chunks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             pdf = Path(tmp) / "paper.pdf"

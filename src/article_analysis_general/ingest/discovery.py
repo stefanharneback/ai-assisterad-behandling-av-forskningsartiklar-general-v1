@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import os
 import unicodedata
+from dataclasses import dataclass
 from pathlib import Path
 
 import fitz  # PyMuPDF
@@ -14,6 +15,14 @@ from article_analysis_general.store.record import Article, ArticleSource, TextLa
 # (image-only) PDF yields (almost) none. The threshold ignores stray artifacts
 # like page numbers so a single OCR-free header does not look like a text layer.
 MIN_TEXT_LAYER_CHARS = 32
+
+
+@dataclass(frozen=True)
+class TextLayerInspection:
+    status: TextLayerStatus
+    page_count: int | None = None
+    text_char_count: int | None = None
+    error: str | None = None
 
 
 def iter_pdf_paths(corpus: Path) -> list[Path]:
@@ -32,6 +41,7 @@ def discover_articles(corpus: Path) -> list[Article]:
     articles_by_doc_id: dict[str, Article] = {}
     for pdf_path in iter_pdf_paths(corpus):
         file_hash = sha256_file(pdf_path)
+        text_layer = inspect_text_layer(pdf_path)
         source = ArticleSource(
             file_name=pdf_path.name,
             relative_path=normalized_relative_path(corpus, pdf_path),
@@ -43,7 +53,10 @@ def discover_articles(corpus: Path) -> list[Article]:
                 doc_id=file_hash,
                 file_hash=file_hash,
                 sources=[source],
-                text_layer=detect_text_layer(pdf_path),
+                text_layer=text_layer.status,
+                page_count=text_layer.page_count,
+                text_char_count=text_layer.text_char_count,
+                text_layer_error=text_layer.error,
                 extraction_status="not_started",
             )
         elif source not in article.sources:
@@ -52,20 +65,26 @@ def discover_articles(corpus: Path) -> list[Article]:
 
 
 def detect_text_layer(path: Path) -> TextLayerStatus:
+    return inspect_text_layer(path).status
+
+
+def inspect_text_layer(path: Path) -> TextLayerInspection:
     try:
         with fitz.open(readable_file_path(path)) as doc:
-            if doc.page_count == 0:
-                return "unknown"
+            page_count = doc.page_count
+            if page_count == 0:
+                return TextLayerInspection(status="unknown", page_count=0, text_char_count=0)
             char_count = 0
-            for page in doc:
+            for page_number in range(page_count):
+                page = doc.load_page(page_number)
                 char_count += len(page.get_text("text").strip())
                 if char_count >= MIN_TEXT_LAYER_CHARS:
-                    return "text"
-        return "scanned"
-    except Exception:
+                    return TextLayerInspection(status="text", page_count=page_count, text_char_count=char_count)
+        return TextLayerInspection(status="scanned", page_count=page_count, text_char_count=char_count)
+    except Exception as exc:
         # Unreadable, encrypted or non-PDF bytes: leave the layer undetermined
         # so later parsing milestones can refine it instead of guessing now.
-        return "unknown"
+        return TextLayerInspection(status="unknown", error=f"{type(exc).__name__}: {exc}")
 
 
 def sha256_file(path: Path) -> str:

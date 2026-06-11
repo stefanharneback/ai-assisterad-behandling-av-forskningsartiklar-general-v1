@@ -65,6 +65,9 @@ class Article(BaseModel):
     venue: str | None = None
     abstract: str | None = None
     text_layer: TextLayerStatus = "unknown"
+    page_count: int | None = Field(default=None, ge=0)
+    text_char_count: int | None = Field(default=None, ge=0)
+    text_layer_error: str | None = None
     extraction_status: ExtractionStatus = "not_started"
     confidence: float | None = Field(default=None, ge=0, le=1)
     topics: list[str] = Field(default_factory=list)

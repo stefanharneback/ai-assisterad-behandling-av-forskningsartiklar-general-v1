@@ -10,6 +10,7 @@ import fitz  # PyMuPDF
 from article_analysis_general.ingest.discovery import (
     detect_text_layer,
     discover_articles,
+    inspect_text_layer,
     iter_pdf_paths,
     readable_file_path,
     sha256_file,
@@ -101,12 +102,36 @@ class DiscoveryTests(unittest.TestCase):
 
             self.assertEqual(detect_text_layer(pdf), "scanned")
 
+    def test_inspect_text_layer_records_openable_pdf_diagnostics(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            pdf = Path(tmp) / "text.pdf"
+            _write_text_pdf(pdf, "Method, results and discussion of the study.")
+
+            inspection = inspect_text_layer(pdf)
+
+            self.assertEqual(inspection.status, "text")
+            self.assertEqual(inspection.page_count, 1)
+            self.assertGreater(inspection.text_char_count or 0, 0)
+            self.assertIsNone(inspection.error)
+
     def test_detect_text_layer_is_unknown_for_non_pdf_bytes(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             pdf = Path(tmp) / "broken.pdf"
             pdf.write_bytes(b"not a pdf")
 
             self.assertEqual(detect_text_layer(pdf), "unknown")
+
+    def test_inspect_text_layer_records_error_for_unreadable_pdf(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            pdf = Path(tmp) / "broken.pdf"
+            pdf.write_bytes(b"not a pdf")
+
+            inspection = inspect_text_layer(pdf)
+
+            self.assertEqual(inspection.status, "unknown")
+            self.assertIsNone(inspection.page_count)
+            self.assertIsNone(inspection.text_char_count)
+            self.assertIn("FileDataError", inspection.error or "")
 
     def test_discover_articles_sets_detected_text_layer(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -118,6 +143,9 @@ class DiscoveryTests(unittest.TestCase):
 
             self.assertEqual(len(articles), 1)
             self.assertEqual(articles[0].text_layer, "text")
+            self.assertEqual(articles[0].page_count, 1)
+            self.assertGreater(articles[0].text_char_count or 0, 0)
+            self.assertIsNone(articles[0].text_layer_error)
 
     @unittest.skipUnless(os.name == "nt", "Windows extended paths are only used on Windows")
     def test_readable_file_path_uses_windows_extended_path_prefix(self) -> None:

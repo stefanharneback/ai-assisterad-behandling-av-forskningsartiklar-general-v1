@@ -28,6 +28,8 @@ class InventoryTests(unittest.TestCase):
                 title="A Study",
                 published_year=2024,
                 text_layer="text",
+                page_count=12,
+                text_char_count=3456,
             )
 
             write_inventory([article], path)
@@ -38,6 +40,9 @@ class InventoryTests(unittest.TestCase):
             self.assertEqual(rows[0]["title"], "A Study")
             self.assertEqual(rows[0]["published_year"], "2024")
             self.assertEqual(rows[0]["text_layer"], "text")
+            self.assertEqual(rows[0]["page_count"], "12")
+            self.assertEqual(rows[0]["text_char_count"], "3456")
+            self.assertEqual(rows[0]["text_layer_error"], "")
             self.assertEqual(rows[0]["source_databases"], "SCOPUS; ERIC")
 
     def test_write_inventory_renders_missing_fields_as_empty(self) -> None:
@@ -56,6 +61,9 @@ class InventoryTests(unittest.TestCase):
             self.assertEqual(rows[0]["published_year"], "")
             self.assertEqual(rows[0]["doi"], "")
             self.assertEqual(rows[0]["text_layer"], "unknown")
+            self.assertEqual(rows[0]["page_count"], "")
+            self.assertEqual(rows[0]["text_char_count"], "")
+            self.assertEqual(rows[0]["text_layer_error"], "")
 
 
 if __name__ == "__main__":
