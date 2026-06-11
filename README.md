@@ -51,6 +51,16 @@ article-analysis-general ingest --corpus Forskning --out runs
 article-analysis-general ingest --corpus Forskning --out runs --parse-local
 ```
 
+## Arbetsrytm och granskning
+
+Arbetet delas i små, verifierade slices. Kodändringar ska normalt klara
+`pytest`, `ruff check .` och `mypy src tests` innan commit. Parser-, ingest- och
+outputändringar ska dessutom smoke-testas mot `Forskning/` till en temporär
+outputkatalog.
+
+Strukturerade granskningar sparas i `docs/reviews/`. Process, review-packet och
+severity-nivåer beskrivs i [docs/workflows/review-process.md](docs/workflows/review-process.md).
+
 ## Repo-status
 
 M0 är klart och M1 är implementerat som körbar ingest-kärna. M2 har en lokal PyMuPDF-baseline för text, sektioner och chunks via `--parse-local`; GROBID, PyMuPDF4LLM/Docling och OCR (Optical Character Recognition) är fortfarande nästa parsersteg. OpenAlex, Crossref, Unpaywall, SQLite/DuckDB-index och frågemotor implementeras i efterföljande milestones enligt [docs/implementation-roadmap.md](docs/implementation-roadmap.md).

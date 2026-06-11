@@ -11,9 +11,17 @@ python -m pip install -e ".[dev]"
 ## Checks
 
 ```powershell
-python -m pytest
-python -m ruff check .
-python -m mypy src
+.\.venv\Scripts\python.exe -m pytest
+.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe -m mypy src tests
+```
+
+For parser, ingest or output changes, run a corpus smoke test to a temporary
+directory:
+
+```powershell
+$out = Join-Path $env:TEMP "article-analysis-general-smoke"
+.\.venv\Scripts\python.exe -m article_analysis_general.cli ingest --corpus Forskning --out $out --parse-local
 ```
 
 ## Local data

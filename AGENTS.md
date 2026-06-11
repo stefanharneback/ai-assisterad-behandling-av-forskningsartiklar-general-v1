@@ -15,6 +15,22 @@ Roadmap: `docs/implementation-roadmap.md`.
   explicit `not_found` / low-confidence state.
 - Do not commit research PDFs, run outputs, API keys or local caches.
 
+## Working cadence and reviews
+
+- Work in small, reviewable slices. Prefer one coherent behavior or contract
+  change per commit.
+- Before code commits, run `pytest`, `ruff check .`, and `mypy src tests` from
+  the project virtual environment.
+- For ingest, parser or output changes, also run a corpus smoke test to a
+  temporary output directory, not to committed paths.
+- Request a structured review after 2-4 related commits, at milestone
+  boundaries, or whenever models, Command Line Interface (CLI), JSON output,
+  `inventory.csv`, provenance, cost tracking, `doc_id`, or SQL behavior changes.
+- Save substantive review reports in `docs/reviews/` using the
+  `Codex-Review--YYYY-MM-DD-HHMM--short-description.md` naming convention.
+- Use `docs/workflows/review-process.md` as the source of truth for review
+  packets, severity levels and verification gates.
+
 ## Writing
 
 - Abbreviations — spell out on first use. The first time an abbreviation appears
